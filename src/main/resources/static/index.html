@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseClaim - Employee Reimbursement Workflow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-hover: #3a56d4;
+            --success: #2ec4b6;
+            --warning: #ff9f1c;
+            --danger: #e71d36;
+            --info: #3f37c9;
+            --dark: #1e293b;
+            --gray-100: #f8fafc;
+            --gray-200: #f1f5f9;
+            --gray-300: #e2e8f0;
+            --gray-500: #64748b;
+            --border-radius: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f6fa; color: var(--dark); padding: 24px; }
+        
+        .header {
+            max-width: 1300px;
+            margin: 0 auto 24px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 20px 28px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .header h1 { font-size: 22px; color: var(--dark); display: flex; align-items: center; gap: 10px; }
+        .header .badge-tag { font-size: 12px; background: #e0e7ff; color: var(--primary); padding: 4px 10px; border-radius: 12px; font-weight: 600; }
+        .header-links a { text-decoration: none; color: var(--primary); font-size: 14px; font-weight: 600; padding: 6px 12px; border: 1px solid var(--primary); border-radius: 6px; transition: all 0.2s; }
+        .header-links a:hover { background: var(--primary); color: #fff; }
+
+        .container { max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: 380px 1fr; gap: 24px; }
+
+        .card { background: #fff; border-radius: var(--border-radius); padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 24px; }
+        .card h2 { font-size: 17px; font-weight: 700; margin-bottom: 18px; color: #0f172a; border-bottom: 2px solid var(--gray-200); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        input, select, textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--dark);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-success { background: #10b981; color: #fff; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; color: #fff; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: #ef4444; color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-outline { background: transparent; border: 1px solid var(--gray-300); color: #475569; }
+        .btn-outline:hover { background: var(--gray-200); }
+        .btn-sm { width: auto; padding: 5px 9px; font-size: 12px; }
+
+        .policy-badge {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 14px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .policy-badge span { font-weight: 600; color: var(--primary); }
+
+        .item-row {
+            background: #f8fafc;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .item-row .remove-item-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .alert {
+            padding: 12px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+        /* Table styles */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f8fafc; color: #475569; font-weight: 600; text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--gray-300); }
+        td { padding: 12px 14px; border-bottom: 1px solid var(--gray-200); vertical-align: middle; }
+        tr:hover { background: #fdfdfd; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        .status-SUBMITTED { background: #e0f2fe; color: #0369a1; }
+        .status-PENDING_APPROVAL { background: #fef3c7; color: #b45309; }
+        .status-APPROVED { background: #dcfce7; color: #15803d; }
+        .status-REJECTED { background: #fee2e2; color: #b91c1c; }
+        .status-PAID { background: #ede9fe; color: #6d28d9; }
+
+        .flag-violation {
+            display: inline-block;
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #f87171;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        .action-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 24px;
+            border-radius: var(--border-radius);
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-header h3 { font-size: 18px; }
+        .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--gray-500); }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div>
+            <h1>ExpenseClaim System <span class="badge-tag">Workflow Engine</span></h1>
+            <p style="font-size: 13px; color: #64748b; margin-top: 4px;">Employee Expense Submission &bull; Policy Enforcement &bull; Manager Approval &bull; Finance Payment</p>
+        </div>
+        <div class="header-links">
+            <a href="/swagger-ui.html" target="_blank">Open Swagger UI</a>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        
+        <!-- Left Sidebar: Employee & Submission -->
+        <div>
+            <!-- Notification banner -->
+            <div id="alertBox" class="alert"></div>
+
+            <!-- Employee Selection & Quick Add -->
+            <div class="card">
+                <h2>1. Active Employee <button class="btn btn-outline btn-sm" onclick="openEmployeeModal()">+ New</button></h2>
+                <div class="form-group">
+                    <label>Select Submitting Employee:</label>
+                    <select id="employeeSelect" onchange="onEmployeeChanged()">
+                        <option value="">-- Loading Employees --</option>
+                    </select>
+                </div>
+                <div id="employeeDetails" style="font-size: 12px; color: #64748b; line-height: 1.5; display: none; margin-top: 10px;">
+                    <strong>Department:</strong> <span id="empDept"></span><br>
+                    <strong>Approving Manager:</strong> <span id="empManager"></span><br>
+                    <button type="button" class="btn btn-danger btn-sm" style="margin-top: 8px;" onclick="deleteSelectedEmployee()">Delete Selected Employee</button>
+                </div>
+            </div>
+
+            <!-- Policy Limits Info -->
+            <div class="policy-badge">
+                <strong>Policy Limits per Item:</strong><br>
+                &bull; TRAVEL: <span>₹5,000</span> &nbsp;&bull; FOOD: <span>₹1,000</span><br>
+                &bull; HOTEL: <span>₹5,000</span> &nbsp;&bull; FUEL: <span>₹3,000</span><br>
+                <small style="color: #64748b;">*Items exceeding limits require explicit Manager Override.</small>
+            </div>
+
+            <!-- Submit Claim Form -->
+            <div class="card">
+                <h2>2. Submit Expense Claim</h2>
+                <form id="claimForm" onsubmit="submitClaim(event)">
+                    <div class="form-group">
+                        <label>Claim Description:</label>
+                        <input type="text" id="claimDesc" placeholder="e.g. Client visit in Mumbai" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Claim Date:</label>
+                        <input type="date" id="claimDate" required>
+                    </div>
+
+                    <label style="margin-top: 14px;">Expense Items:</label>
+                    <div id="itemsContainer"></div>
+
+                    <button type="button" class="btn btn-outline btn-sm" style="margin-bottom: 16px;" onclick="addItemRow()">+ Add Item</button>
+
+                    <div style="font-size: 14px; font-weight: 700; margin-bottom: 14px; color: var(--primary); text-align: right;">
+                        Total Amount: ₹<span id="calculatedTotal">0.00</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit Claim for Approval</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Side: Workflow & Claims Table -->
+        <div>
+            <div class="card">
+                <h2>
+                    All Expense Claims & Approvals
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-outline btn-sm" onclick="loadClaims()">&#x21bb; Refresh</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteAllClaims()">Delete All Claims</button>
+                    </div>
+                </h2>
+
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Employee</th>
+                                <th>Description</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Policy Flag</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="claimsTableBody">
+                            <tr><td colspan="7" style="text-align: center; color: #94a3b8;">Loading claims...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Create Employee -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Employee</h3>
+                <button class="close-btn" onclick="closeEmployeeModal()">&times;</button>
+            </div>
+            <form onsubmit="createEmployee(event)">
+                <div class="form-group">
+                    <label>Full Name:</label>
+                    <input type="text" id="newEmpName" required placeholder="e.g. Priya Sharma">
+                </div>
+                <div class="form-group">
+                    <label>Email Address:</label>
+                    <input type="email" id="newEmpEmail" required placeholder="e.g. priya@company.com">
+                </div>
+                <div class="form-group">
+                    <label>Department:</label>
+                    <input type="text" id="newEmpDept" required placeholder="e.g. Sales">
+                </div>
+                <div class="form-group">
+                    <label>Manager Name:</label>
+                    <input type="text" id="newEmpManager" required placeholder="e.g. Rajesh Kumar">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Employee</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Claim Details / Action Drawer -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3 id="detailsTitle">Claim Details</h3>
+                <button class="close-btn" onclick="closeDetailsModal()">&times;</button>
+            </div>
+            <div id="detailsBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let employees = [];
+        let claims = [];
+
+        const POLICY_LIMITS = {
+            'TRAVEL': 5000,
+            'FOOD': 1000,
+            'HOTEL': 5000,
+            'FUEL': 3000
+        };
+
+        window.onload = function() {
+            document.getElementById('claimDate').valueAsDate = new Date();
+            loadEmployees();
+            loadClaims();
+            addItemRow(); // add initial item row
+        };
+
+        function showAlert(msg, isError = false) {
+            const box = document.getElementById('alertBox');
+            box.textContent = msg;
+            box.className = 'alert ' + (isError ? 'alert-error' : 'alert-success');
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 6000);
+        }
+
+        // --- EMPLOYEE MANAGEMENT ---
+        async function loadEmployees() {
+            try {
+                const res = await fetch(`${API_BASE}/employees`);
+                employees = await res.json();
+                const select = document.getElementById('employeeSelect');
+                select.innerHTML = '<option value="">-- Choose Employee --</option>';
+                employees.forEach(emp => {
+                    const opt = document.createElement('option');
+                    opt.value = emp.id;
+                    opt.textContent = `${emp.name} (${emp.department})`;
+                    select.appendChild(opt);
+                });
+                if (employees.length > 0) {
+                    select.value = employees[0].id;
+                    onEmployeeChanged();
+                }
+            } catch (err) {
+                showAlert('Error loading employees: ' + err.message, true);
+            }
+        }
+
+        function onEmployeeChanged() {
+            const id = document.getElementById('employeeSelect').value;
+            const emp = employees.find(e => e.id == id);
+            const detailsDiv = document.getElementById('employeeDetails');
+            if (emp) {
+                document.getElementById('empDept').textContent = emp.department;
+                document.getElementById('empManager').textContent = emp.managerName;
+                detailsDiv.style.display = 'block';
+            } else {
+                detailsDiv.style.display = 'none';
+            }
+        }
+
+        function openEmployeeModal() { document.getElementById('employeeModal').style.display = 'flex'; }
+        function closeEmployeeModal() { document.getElementById('employeeModal').style.display = 'none'; }
+
+        async function createEmployee(e) {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('newEmpName').value,
+                email: document.getElementById('newEmpEmail').value,
+                department: document.getElementById('newEmpDept').value,
+                managerName: document.getElementById('newEmpManager').value
+            };
+            try {
+                const res = await fetch(`${API_BASE}/employees`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to create employee');
+                showAlert('Employee created successfully!');
+                closeEmployeeModal();
+                await loadEmployees();
+                document.getElementById('employeeSelect').value = data.id;
+                onEmployeeChanged();
+            } catch (err) {
+                showAlert(err.message, true);
+            }
+        }
+
+        // --- EXPENSE ITEM DYNAMICS ---
+        function addItemRow() {
+            const container = document.getElementById('itemsContainer');
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <button type="button" class="remove-item-btn" onclick="removeItemRow(this)">&times;</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 6px;">
+                    <div>
+                        <label>Category:</label>
+                        <select class="item-cat" onchange="calculateTotal()" required>
+                            <option value="TRAVEL">TRAVEL (Limit ₹5000)</option>
+                            <option value="FOOD">FOOD (Limit ₹1000)</option>
+                            <option value="HOTEL">HOTEL (Limit ₹5000)</option>
+                            <option value="FUEL">FUEL (Limit ₹3000)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Amount (₹):</label>
+                        <input type="number" step="0.01" min="0.01" class="item-amt" placeholder="0.00" oninput="calculateTotal()" required>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 8px;">
+                    <div>
+                        <label>Item Description:</label>
+                        <input type="text" class="item-desc" placeholder="Details" required>
+                    </div>
+                    <div>
+                        <label>Expense Date:</label>
+                        <input type="date" class="item-date" value="${new Date().toISOString().split('T')[0]}" required>
+                    </div>
+                </div>
+                <div class="item-warning" style="font-size: 11px; color: var(--danger); font-weight: 600; margin-top: 4px; display: none;">
+                    Exceeds category policy limit! Requires manager override.
+                </div>
+            `;
+            container.appendChild(row);
+            calculateTotal();
+        }
+
+        function removeItemRow(btn) {
+            const rows = document.querySelectorAll('.item-row');
+            if (rows.length <= 1) {
+                alert('A claim must have at least one expense item.');
+                return;
+            }
+            btn.closest('.item-row').remove();
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            const rows = document.querySelectorAll('.item-row');
+            rows.forEach(r => {
+                const cat = r.querySelector('.item-cat').value;
+                const amt = parseFloat(r.querySelector('.item-amt').value) || 0;
+                const warn = r.querySelector('.item-warning');
+                total += amt;
+
+                if (amt > POLICY_LIMITS[cat]) {
+                    warn.style.display = 'block';
+                } else {
+                    warn.style.display = 'none';
+                }
+            });
+            document.getElementById('calculatedTotal').textContent = total.toFixed(2);
+        }
+
+        // --- CLAIM SUBMISSION ---
+        async function submitClaim(e) {
+            e.preventDefault();
+            const empId = document.getElementById('employeeSelect').value;
+            if (!empId) {
+                showAlert('Please select an employee first!', true);
+                return;
+            }
+
+            const items = [];
+            const rows = document.querySelectorAll('.item-row');
+            rows.forEach(r => {
+                items.push({
+                    category: r.querySelector('.item-cat').value,
+                    amount: parseFloat(r.querySelector('.item-amt').value),
+                    description: r.querySelector('.item-desc').value,
+                    expenseDate: r.querySelector('.item-date').value
+                });
+            });
+
+            const payload = {
+                employeeId: parseInt(empId),
+                claimDate: document.getElementById('claimDate').value,
+                description: document.getElementById('claimDesc').value,
+                expenseItems: items
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/claims`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Submission failed');
+
+                showAlert(`Claim #${data.id} submitted successfully! Status: ${data.status}`);
+                document.getElementById('claimDesc').value = '';
+                document.getElementById('itemsContainer').innerHTML = '';
+                addItemRow();
+                loadClaims();
+            } catch (err) {
+                showAlert(err.message, true);
+            }
+        }
+
+        // --- CLAIMS TABLE & ACTIONS ---
+        async function loadClaims() {
+            try {
+                const res = await fetch(`${API_BASE}/employees`);
+                const allEmps = await res.json();
+                
+                // Fetch claims for each employee
+                let allClaims = [];
+                for (const emp of allEmps) {
+                    const cRes = await fetch(`${API_BASE}/employees/${emp.id}/claims`);
+                    const cData = await cRes.json();
+                    allClaims = allClaims.concat(cData);
+                }
+
+                // Sort descending by ID
+                allClaims.sort((a,b) => b.id - a.id);
+                claims = allClaims;
+                renderClaimsTable(allClaims);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderClaimsTable(claimList) {
+            const tbody = document.getElementById('claimsTableBody');
+            if (claimList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #94a3b8;">No expense claims found. Submit one on the left!</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = claimList.map(c => {
+                const hasViolation = c.expenseItems && c.expenseItems.some(i => i.exceedsPolicyLimit);
+                const violationBadge = hasViolation 
+                    ? `<span class="flag-violation">&#9888; Policy Exceeded</span>` 
+                    : `<span style="color: #10b981; font-size: 11px; font-weight:600;">&check; Within Limit</span>`;
+
+                let actionButtons = `<button class="btn btn-outline btn-sm" onclick="viewDetails(${c.id})">View Details</button>`;
+
+                if (c.status === 'PENDING_APPROVAL') {
+                    if (hasViolation) {
+                        actionButtons += `
+                            <button class="btn btn-warning btn-sm" onclick="promptOverrideApprove(${c.id})">Override Approve</button>
+                            <button class="btn btn-danger btn-sm" onclick="promptReject(${c.id})">Reject</button>
+                        `;
+                    } else {
+                        actionButtons += `
+                            <button class="btn btn-success btn-sm" onclick="promptApprove(${c.id})">Approve</button>
+                            <button class="btn btn-danger btn-sm" onclick="promptReject(${c.id})">Reject</button>
+                        `;
+                    }
+                } else if (c.status === 'APPROVED') {
+                    actionButtons += `
+                        <button class="btn btn-primary btn-sm" onclick="promptPay(${c.id})">Pay (Finance)</button>
+                    `;
+                }
+
+                actionButtons += `
+                    <button class="btn btn-danger btn-sm" onclick="deleteClaim(${c.id})">Delete</button>
+                `;
+
+                return `
+                    <tr>
+                        <td><strong>#${c.id}</strong></td>
+                        <td>
+                            <strong>${c.employee ? c.employee.name : 'N/A'}</strong><br>
+                            <small style="color: #64748b;">${c.employee ? c.employee.department : ''}</small>
+                        </td>
+                        <td>${c.description}<br><small style="color: #64748b;">${c.claimDate}</small></td>
+                        <td><strong>₹${Number(c.totalAmount).toFixed(2)}</strong></td>
+                        <td><span class="status-badge status-${c.status}">${c.status}</span></td>
+                        <td>${violationBadge}</td>
+                        <td><div class="action-cell">${actionButtons}</div></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // --- APPROVAL / REJECT / OVERRIDE / PAY ACTIONS ---
+        async function promptApprove(claimId) {
+            const remarks = prompt("Enter Manager Approval Remarks:", "Approved as within departmental budget");
+            if (remarks === null) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/claims/${claimId}/approve`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ approverName: "Manager", remarks: remarks })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Approval failed');
+                showAlert(`Claim #${claimId} APPROVED successfully!`);
+                loadClaims();
+            } catch (err) {
+                showAlert(err.message, true);
+            }
+        }
+
+        async function promptOverrideApprove(claimId) {
+            const remarks = prompt("Policy Limit Exceeded! Enter Mandatory Override Justification Remarks:");
+            if (remarks === null) return;
+            if (!remarks.trim()) {
+                alert("Override remarks are required!");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/claims/${claimId}/override-approve`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ approverName: "Manager (Override)", remarks: remarks })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Override approval failed');
+                showAlert(`Claim #${claimId} OVERRIDE APPROVED successfully!`);
+                loadClaims();
+            } catch (err) {
+                showAlert(err.message, true);
+            }
+        }
+
+        async function promptReject(claimId) {
+            const remarks = prompt("Enter Rejection Reason:", "Receipts incomplete or invalid");
+            if (remarks === null) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/claims/${claimId}/reject`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ approverName: "Manager", remarks: remarks })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Rejection failed');
+                showAlert(`Claim #${claimId} REJECTED.`);
+                loadClaims();
+            } catch (err) {
+                showAlert(err.message, true);
+            }
+        }
+
+        async function promptPay(claimId) {
+            const ref = prompt("Enter Finance Payment Reference:", `PAY-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+            if (ref === null) return;
+            if (!ref.trim()) {
+                alert("Payment reference is required!");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/claims/${claimId}/pay`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paymentReference: ref })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Payment failed');
+                showAlert(`Claim #${claimId} marked as PAID with ref: ${data.paymentReference}`);
+                loadClaims();
+            } catch (err) {
+                showAlert(err.message, true);
+            }
+        }
+
+        // --- DELETE ACTIONS ---
+        async function deleteClaim(claimId) {
+            if (!confirm(`Are you sure you want to delete Claim #${claimId}?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/claims/${claimId}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to delete claim');
+                showAlert(`Claim #${claimId} deleted successfully!`);
+                loadClaims();
+            } catch (err) {
+                showAlert(err.message, true);
+            }
+        }
+
+        async function deleteAllClaims() {
+            if (!confirm("Are you sure you want to delete ALL expense claims? This cannot be undone.")) return;
+            try {
+                const res = await fetch(`${API_BASE}/claims`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to delete all claims');
+                showAlert("All claims deleted successfully!");
+                loadClaims();
+            } catch (err) {
+                showAlert(err.message, true);
+            }
+        }
+
+        async function deleteSelectedEmployee() {
+            const empId = document.getElementById('employeeSelect').value;
+            if (!empId) {
+                alert("Please select an employee to delete!");
+                return;
+            }
+            const emp = employees.find(e => e.id == empId);
+            const empName = emp ? emp.name : `ID #${empId}`;
+            if (!confirm(`Are you sure you want to delete Employee "${empName}" and all their claims?`)) return;
+            try {
+                const res = await fetch(`${API_BASE}/employees/${empId}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Failed to delete employee');
+                showAlert(`Employee "${empName}" deleted successfully!`);
+                await loadEmployees();
+                loadClaims();
+            } catch (err) {
+                showAlert(err.message, true);
+            }
+        }
+
+        // --- VIEW DETAILS MODAL ---
+        async function viewDetails(claimId) {
+            const claim = claims.find(c => c.id === claimId);
+            if (!claim) return;
+
+            document.getElementById('detailsTitle').textContent = `Claim #${claim.id} - ${claim.description}`;
+
+            // Fetch approval steps
+            const stepsRes = await fetch(`${API_BASE}/claims/${claimId}/approval-steps`);
+            const steps = await stepsRes.json();
+
+            let itemsHtml = (claim.expenseItems || []).map(i => `
+                <tr>
+                    <td><strong>${i.category}</strong></td>
+                    <td>₹${Number(i.amount).toFixed(2)}</td>
+                    <td>₹${Number(i.policyLimit).toFixed(2)}</td>
+                    <td>${i.exceedsPolicyLimit ? '<span style="color:var(--danger);font-weight:700;">YES (Violation)</span>' : '<span style="color:#10b981;font-weight:600;">NO</span>'}</td>
+                    <td>${i.description}</td>
+                    <td>${i.expenseDate}</td>
+                </tr>
+            `).join('');
+
+            let stepsHtml = steps.map(s => `
+                <div style="background:#f8fafc; border-left: 3px solid var(--primary); padding: 8px 12px; margin-bottom: 8px; font-size: 12px;">
+                    <strong>Approver:</strong> ${s.approverName} &nbsp;|&nbsp; <strong>Status:</strong> ${s.status}<br>
+                    <strong>Remarks:</strong> ${s.remarks || 'None'}<br>
+                    <small style="color:#64748b;">${s.approvedAt ? new Date(s.approvedAt).toLocaleString() : 'Pending'}</small>
+                </div>
+            `).join('');
+
+            document.getElementById('detailsBody').innerHTML = `
+                <div style="margin-bottom: 16px; font-size: 13px;">
+                    <strong>Employee:</strong> ${claim.employee ? claim.employee.name : ''} (${claim.employee ? claim.employee.email : ''})<br>
+                    <strong>Status:</strong> <span class="status-badge status-${claim.status}">${claim.status}</span><br>
+                    <strong>Total Amount:</strong> ₹${Number(claim.totalAmount).toFixed(2)}<br>
+                    ${claim.paymentReference ? `<strong>Payment Reference:</strong> ${claim.paymentReference}<br>` : ''}
+                    ${claim.managerRemarks ? `<strong>Manager Remarks:</strong> ${claim.managerRemarks}<br>` : ''}
+                </div>
+
+                <h4 style="margin-bottom: 8px; font-size: 14px;">Itemized Breakdown:</h4>
+                <table style="margin-bottom: 20px;">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Policy Limit</th>
+                            <th>Violation?</th>
+                            <th>Description</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+
+                <h4 style="margin-bottom: 8px; font-size: 14px;">Approval Audit Trail:</h4>
+                ${stepsHtml || '<p style="font-size: 12px; color: #94a3b8;">No approval history.</p>'}
+            `;
+
+            document.getElementById('detailsModal').style.display = 'flex';
+        }
+
+        function closeDetailsModal() { document.getElementById('detailsModal').style.display = 'none'; }
+    </script>
+</body>
+</html>
